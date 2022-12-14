@@ -1,4 +1,5 @@
-use std::any::Any;
+use serde::{Deserialize, Serialize};
+use crate::dag::Visitor;
 
 
 ///
@@ -6,7 +7,7 @@ use std::any::Any;
 /// This is where data is referenced/owned as relational to other data.
 /// Nodes are meant to be as small as possible. They are used for relationships, not actual data.
 ///
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct MachNode {
     /// Name of this node - does not have to be unique to the graph.
     pub name: String,
@@ -16,9 +17,6 @@ pub struct MachNode {
 
     /// Index of this node within graph.
     pub index: u32,
-
-    /// Optional metadata for this node - should not replace components.
-    pub meta: Option<Box<dyn Any>>,
 
     /// Children of this node.
     pub children: Vec<u32>,
@@ -37,7 +35,6 @@ impl Default for MachNode {
             name: String::from("root"),
             parent: 0,
             index: 0,
-            meta: None,
             children: Vec::new(),
             components: Vec::new()
         }
@@ -73,6 +70,22 @@ impl MachNode {
     /// Has components?
     pub fn has_components(&self) -> bool {
         self.components.len() > 0
+    }
+
+
+    /**********************************************************
+     * Visitors
+     **********************************************************/
+
+    /// Accept a visitor.
+    pub fn accept(&self, visitor: &impl Visitor) {
+        visitor.visit(self);
+    }
+
+
+    /// Accept a visitor mutable.
+    pub fn accept_mut(&mut self, visitor: &mut impl Visitor) {
+        visitor.visit_mut(self);
     }
 }
 

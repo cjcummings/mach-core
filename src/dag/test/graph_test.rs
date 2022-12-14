@@ -22,7 +22,6 @@ mod mach_graph_test {
             assert_eq!(child.index, 1);
             assert_eq!(child.parent, 0);
             assert_eq!(child.name, String::from("child"));
-            assert!(child.meta.is_none());
             assert_eq!(child.children.len(), 0);
             assert_eq!(child.components.len(), 0);
         }
@@ -34,7 +33,6 @@ mod mach_graph_test {
             assert_eq!(root.children[0], 1);
             assert_eq!(root.name, String::from("root"));
             assert_eq!(root.components.len(), 0);
-            assert!(root.meta.is_none());
         }
     }
 
@@ -89,10 +87,9 @@ mod mach_graph_test {
     #[test]
     fn syntax() {
         graph!(graph, {
-            node!(graph, first, "first");
-            {
-                node!(graph, _second, "second", first);
-            }
+            node!(graph, first, "first", {
+                node!(graph, _second, "second", first, {});
+            });
 
             node!(graph, second, "another");
             {

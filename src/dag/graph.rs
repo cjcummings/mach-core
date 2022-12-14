@@ -1,3 +1,5 @@
+use serde::{Serialize, Deserialize};
+use crate::dag::Visitor;
 use super::{MachNode, Handle};
 
 
@@ -5,7 +7,7 @@ use super::{MachNode, Handle};
 /// MachGraph.
 /// This is where nodes are organized.
 /// 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct MachGraph {
     /// Name of this graph.
     pub name: String,
@@ -115,6 +117,18 @@ impl MachGraph {
 
 
     /**********************************************************
+     * Components
+     **********************************************************/
+
+    /// Push a component to a node.
+    pub fn push_component(&mut self, node: &Handle, component: u32) {
+        if let Some(node) = self.get_node_mut(node) {
+            node.components.push(component);
+        }
+    }
+
+
+    /**********************************************************
      * Children
      **********************************************************/
 
@@ -148,5 +162,91 @@ impl MachGraph {
         node.index = index;
         self.nodes.push(node);
         index
+    }
+
+
+    /**********************************************************
+     * Visitors
+     **********************************************************/
+
+    /// Visit all nodes (not in graph order).
+    pub fn visit_all(&self, visitor: &impl Visitor) {
+        for node in &self.nodes { node.accept(visitor); }
+    }
+
+
+    /// Visit all nodes mutable (not in graph order).
+    pub fn visit_all_mut(&mut self, visitor: &mut impl Visitor) {
+        for node in &mut self.nodes { node.accept_mut(visitor); }
+    }
+
+
+    /// Pre-visit.
+    pub fn pre_visit(&self, visitor: &impl Visitor) {
+        let mut handle = self.root.clone();
+        self.pre_visit_internal(visitor, &mut handle);
+    }
+    fn pre_visit_internal(&self, visitor: &impl Visitor, handle: &mut Handle) {
+        if let Some(node) = self.get_node(&handle) {
+            node.accept(visitor);
+            for child in &node.children {
+                let mut handle = Handle::from(*child);
+                self.pre_visit_internal(visitor, &mut handle);
+            }
+        }
+    }
+
+
+    /// Pre-visit mutable.
+    pub fn pre_visit_mut(&mut self, visitor: &mut impl Visitor) {
+        let mut handle = self.root.clone();
+        self.pre_visit_internal_mut(visitor, &mut handle);
+    }
+    fn pre_visit_internal_mut(&mut self, visitor: &mut impl Visitor, handle: &mut Handle) {
+        let mut children: Vec<u32> = Vec::new();
+        if let Some(node) = self.get_node_mut(&handle) {
+            node.accept_mut(visitor);
+            children = node.children.clone();
+        }
+        for child in &children {
+            let mut handle = Handle::from(*child);
+            self.pre_visit_internal_mut(visitor, &mut handle);
+        }
+    }
+
+
+    /// Post-visit.
+    pub fn post_visit(&self, visitor: &impl Visitor) {
+        let mut handle = self.root.clone();
+        self.post_visit_internal(visitor, &mut handle);
+    }
+    fn post_visit_internal(&self, visitor: &impl Visitor, handle: &mut Handle) {
+        if let Some(node) = self.get_node(&handle) {
+            for child in &node.children {
+                let mut handle = Handle::from(*child);
+                self.post_visit_internal(visitor, &mut handle);
+            }
+            node.accept(visitor);
+        }
+    }
+
+
+    /// Post-visit mutable.
+    pub fn post_visit_mut(&mut self, visitor: &mut impl Visitor) {
+        let mut handle = self.root.clone();
+        self.post_visit_internal_mut(visitor, &mut handle);
+    }
+    fn post_visit_internal_mut(&mut self, visitor: &mut impl Visitor, handle: &mut Handle) {
+        let mut children: Vec<u32> = Vec::new();
+        if let Some(node) = self.get_node_mut(&handle) {
+            children = node.children.clone();
+        }
+        for child in &children {
+            let mut handle = Handle::from(*child);
+            self.post_visit_internal_mut(visitor, &mut handle);
+        }
+        if let Some(node) = self.get_node_mut(&handle) {
+            node.accept_mut(visitor);
+        }
     }
 }

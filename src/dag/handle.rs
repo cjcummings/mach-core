@@ -1,3 +1,4 @@
+use serde::{Serialize, Deserialize};
 use super::{MachGraph, MachNode};
 
 
@@ -5,7 +6,7 @@ use super::{MachGraph, MachNode};
 /// Handle.
 /// Used for referencing nodes within a MachGraph.
 ///
-#[derive(Debug, Clone)] 
+#[derive(Debug, Clone, Serialize, Deserialize)] 
 pub struct Handle {
     /// Name of the node (is a dot-separated path in a search).
     pub path: String,
@@ -68,8 +69,7 @@ impl Handle {
                 current_index = current.parent as usize;
                 if current_index < graph.nodes.len() {
                     current = &graph.nodes[current_index];
-                    result.push('.');
-                    result.push_str(current.name.as_str());
+                    result = format!("{}.{}", current.name.as_str(), result.as_str());
                 } else {
                     return None; // Issues with your graph dude...
                 }
@@ -167,6 +167,19 @@ impl From<(String, u32)> for Handle {
     fn from((path, index): (String, u32)) -> Self {
         Self {
             path: path,
+            index: Some(index)
+        }
+    }
+}
+
+
+///
+/// From a path and an index.
+/// 
+impl From<(&str, u32)> for Handle {
+    fn from((path, index): (&str, u32)) -> Self {
+        Self {
+            path: String::from(path),
             index: Some(index)
         }
     }
