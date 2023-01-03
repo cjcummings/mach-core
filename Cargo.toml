@@ -2,6 +2,8 @@
 name = "mach-core"
 version = "0.1.0"
 edition = "2021"
+description = "Mach Data Framework Core."
+license-file = "LICENSE"
 
 [dependencies]
 serde = { version="1.0.150", features = ["derive"] }
