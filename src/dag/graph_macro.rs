@@ -1,5 +1,6 @@
 
 #[allow(unused)]
+#[macro_export]
 macro_rules! graph {
     ($var:ident, $block:block) => {
         let mut $var = MachGraph::default();
@@ -12,6 +13,7 @@ macro_rules! graph {
 }
 
 #[allow(unused)]
+#[macro_export]
 macro_rules! node {
     ($graph:ident, $var:ident, $name:expr) => {
         let $var = $graph.push_child($name);

@@ -1,10 +1,9 @@
 [package]
 name = "mach-core"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Mach Data Framework Core."
-license-file = "LICENSE"
+license = "BSD-3-Clause"
 
 [dependencies]
 serde = { version="1.0.150", features = ["derive"] }
-serde_json = "1.0.89"
